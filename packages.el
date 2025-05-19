@@ -58,3 +58,6 @@
 (package! lsp-treemacs)
 (package! ef-themes)
 (package! vertico-posframe)
+(package! drag-stuff)
+(package! golden-ratio)
+(package! vertico-posframe)
