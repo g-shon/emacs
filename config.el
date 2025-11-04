@@ -12,16 +12,39 @@
 (setq user-full-name "Gershon Koks"
       user-mail-address "gershon@hyvemobile.co.za")
 
- (setq doom-font (font-spec :family "Hasklug Nerd Font" :size 17 :weight 'regular)
-       doom-variable-pitch-font (font-spec :family "Hasklug Nerd Font" :size 17))
+ ;;(setq doom-font (font-spec :family "Hasklug Nerd Font" :size 17 :weight 'regular)
+ ;;      doom-variable-pitch-font (font-spec :family "Hasklug Nerd Font" :size 17))
 
+ (setq doom-font (font-spec :family "Aporetic Sans Mono" :size 17)
+       doom-variable-pitch-font (font-spec :family "Aporetic Sans Mono" :size 17))
+
+;; (setq doom-font (font-spec :family "Source Code Pro" :size 17 :weight 'semi-bold)
+;;       doom-variable-pitch-font (font-spec :family "Source Code Pro" :size 17 :weight 'semi-bold))
+
+;; (setq doom-font (font-spec :family "Anonymous Pro" :size 18 :weight 'semi-bold)
+;;       doom-variable-pitch-font (font-spec :family "Anonymous Pro" :size 18 :weight 'semi-bold))
 
 (global-set-key (kbd "C-c a") 'copy-from-above-command)
 
 ;; Load a specific theme
+ 
+(use-package doric-themes
+  :ensure nil
+  :demand t
+  :load-path "~/.config/emacs/themes/doric-themes")
+
+;;(doric-themes-select 'doric-obsidian)
+;;(doric-themes-select 'doric-water)
+;;(ef-themes-select 'ef-eagle)
 (ef-themes-select 'ef-dream)
+;;(ef-themes-select 'ef-light)
+;;(ef-themes-select 'ef-kassio)
+;;(ef-themes-select 'ef-elea-dark)
 ;;(setq doom-theme 'doom-opera)
-;;(setq doom-theme 'doom-flatwhite)
+;;(setq doom-theme 'doom-nord-aurora)
+;;(load-theme 'everforest-hard-t dark)  
+;;(setq doom-theme 'modus-operandi-deuteranopia) 
+;;(setq doom-theme 'nord)
 
 (setq display-line-numbers-type t)
 (setq display-line-numbers-type 'relative)
@@ -56,23 +79,27 @@
 (setq flycheck-check-syntax-automatically '(mode-enabled save new-line idle-change))
 
 ;; Configure Post-Frame mini buffer
-(use-package! vertico-posframe
-  :after vertico
-  :init
-  ;; Enable vertico-posframe by default
-  (vertico-posframe-mode 1)
-  :custom
-  ;; Position the posframe at the center of the frame
-  (vertico-posframe-poshandler #'posframe-poshandler-frame-center)
-  ;; Customize the appearance
-  (vertico-posframe-border-width 1)
-  (vertico-posframe-width 100)
-  (vertico-posframe-height 20)
-  ;; Optional: Add fringes for better aesthetics
-  (vertico-posframe-parameters
-   '((left-fringe . 8)
-     (right-fringe . 8))))
+;;(use-package! vertico-posframe
+;;  :after vertico
+;;  :init
+;;  ;; Enable vertico-posframe by default
+;;  (vertico-posframe-mode 1)
+;;  :custom
+;;  ;; Position the posframe at the center of the frame
+;;  (vertico-posframe-poshandler #'posframe-poshandler-frame-center)
+;;  ;; Customize the appearance
+;;  (vertico-posframe-border-width 1)
+;;  (vertico-posframe-width 100)
+;;  (vertico-posframe-height 20)
+;;  ;; Optional: Add fringes for better aesthetics
+;;  (vertico-posframe-parameters
+;;   '((left-fringe . 8)
+;;     (right-fringe . 8))))
 
+(after! projectile
+  (dolist (dir '("node_modules" ".next" "dist"))
+    (add-to-list 'projectile-globally-ignored-directories dir))
+  (add-to-list 'projectile-globally-ignored-files "*.log"))
 
 ;; Configure Drag stuff
 (use-package! drag-stuff
@@ -104,10 +131,17 @@
 
 
 ;; Hooks
+;; (add-hook! go-mode #'lsp!)
+;; (add-hook! go-mode-hook
+;;   (add-hook 'before-save-hook #'lsp-format-buffer nil 'local)
+;;   (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
 
-(add-hook! 'go-mode-hook
-  (add-hook 'before-save-hook #'lsp-format-buffer nil 'local)
-  (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
+(after! go-mode
+  (add-hook 'go-mode-hook #'lsp-deferred)
+  (add-hook 'go-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'lsp-format-buffer nil t)
+              (add-hook 'before-save-hook #'lsp-organize-imports nil t))))
 
 ;; Package Config
 
@@ -116,6 +150,9 @@
   (setq org-ellipsis " ")
   (setq org-agenda-files
         '("~/Documents/Hyve/WeeklyNotes.org"))
+  (setq org-priority-highest 1
+      org-priority-lowest 5
+      org-priority-default 3)
 )
 
 (use-package hl-todo
@@ -127,6 +164,12 @@
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(use-package! denote
+  :ensure t
+  :custom
+  (denote-dictory "~/Documents/Notes")
+  (denote-known-keywords '("hyve" "dealsquest" "general")))
 
 (use-package! lsp-treemacs
   :after lsp)
@@ -151,3 +194,33 @@
         :new-connection (lsp-stdio-connection "/usr/bin/ols")
         :major-modes '(odin-mode)
         :server-id 'ols))))
+
+;; Configure Databases
+(setq auth-sources '("~/.netrc"))
+(setq sql-product 'postgres)
+
+(setq sql-connection-alist
+      '((dealsquest-local
+         (sql-product 'postgres)
+         (sql-server "localhost")
+         (sql-user "admin")
+         (sql-database "ddw")
+         (sql-password "secret")
+         (sql-port 5432))))
+
+(after! lsp-clangd
+  (setq lsp-clangd-binary "clangd" ;; or full path to clangd
+        lsp-clangd-version "20"
+        lsp-clients-clangd-args '("--header-insertion=never"
+                                  "--clang-tidy"
+                                  "--completion-style=detailed")))
+
+(use-package! meson-mode
+  :mode ("meson\\.build\\'" . meson-mode)
+  :hook (meson-mode . rainbow-delimiters-mode))
+
+(use-package! protobuf-mode
+  :mode ("\\.proto\\'" . protobuf-mode))
+
+(after! protobuf-mode
+  (add-hook 'protobuf-mode-hook #'lsp!))

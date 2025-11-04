@@ -61,3 +61,9 @@
 (package! drag-stuff)
 (package! golden-ratio)
 (package! vertico-posframe)
+(package! denote)
+(package! meson-mode)
+(package! protobuf-mode)
+(package! nord-theme)
+(package! odin-mode
+  :recipe (:host github :repo "mattt-b/odin-mode"))
